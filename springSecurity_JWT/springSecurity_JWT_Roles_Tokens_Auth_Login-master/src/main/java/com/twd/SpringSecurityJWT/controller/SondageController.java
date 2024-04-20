@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
@@ -82,6 +83,31 @@ ISondageService sondageService;
     @DeleteMapping("/{id-sondage}/delete-sondage")
     public void removeSondage(@PathVariable("id-sondage") Integer idSondage){
         sondageService.removeSondage(idSondage);
+    }
+    @GetMapping("/sort/{sort-order}")
+    public ResponseEntity<List<Sondage>> getSortedSondages(@PathVariable("sort-order") String sortOrder) {
+        try {
+            List<Sondage> sondages = sondageService.retrieveAllSondage();
+
+            // Sort using Java Stream API
+            List<Sondage> sortedSondages = sondages.stream()
+                    .sorted((s1, s2) -> {
+                        if ("asc".equalsIgnoreCase(sortOrder)) {
+                            return s1.getEndDate().compareTo(s2.getEndDate());
+                        } else if ("desc".equalsIgnoreCase(sortOrder)) {
+                            return s2.getEndDate().compareTo(s1.getEndDate());
+                        } else {
+                            throw new IllegalArgumentException("Invalid sortOrder. Use 'asc' or 'desc'.");
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(sortedSondages);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }
