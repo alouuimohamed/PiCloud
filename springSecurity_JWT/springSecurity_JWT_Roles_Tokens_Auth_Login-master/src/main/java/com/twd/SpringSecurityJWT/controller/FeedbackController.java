@@ -1,6 +1,7 @@
 package com.twd.SpringSecurityJWT.controller;
 
 import com.twd.SpringSecurityJWT.entity.Feedback;
+import com.twd.SpringSecurityJWT.entity.FeedbackSearchCriteria;
 import com.twd.SpringSecurityJWT.entity.Sondage;
 import com.twd.SpringSecurityJWT.entity.Users;
 import com.twd.SpringSecurityJWT.repository.FeedbackRepo;
@@ -70,11 +71,22 @@ public class FeedbackController {
     public void removeFeedback(@PathVariable("id-feedback") Integer idFeedback){
         feedBackService.removeFeedback(idFeedback);
     }
-    @GetMapping("/search")
-    public List<Feedback> searchFeedbacks(@RequestParam(required = false) Users createdBy,
-                                          @RequestParam(required = false) String contenu,
-                                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date submissionDate) {
-        return feedBackService.searchFeedbacks(createdBy, contenu, submissionDate);
+    @PostMapping("/search")
+    public List<Feedback> searchFeedbacks(@RequestBody FeedbackSearchCriteria criteria) {
+        Users createdBy = criteria.getCreatedBy();
+        String contenu = criteria.getContenu();
+        Date submissionDate = criteria.getSubmissionDate();
+
+        System.out.println("Received Criteria - createdBy: " + createdBy + ", contenu: " + contenu + ", submissionDate: " + submissionDate);
+
+        List<Feedback> filteredFeedbacks = feedBackService.searchFeedbacks(createdBy, contenu, submissionDate);
+
+        System.out.println("Filtered Feedbacks: " + filteredFeedbacks);
+
+        return filteredFeedbacks;
     }
+
+
+
 
 }

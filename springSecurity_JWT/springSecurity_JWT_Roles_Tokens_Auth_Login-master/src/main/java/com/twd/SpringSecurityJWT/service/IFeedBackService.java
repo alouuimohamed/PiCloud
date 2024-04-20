@@ -1,6 +1,7 @@
 package com.twd.SpringSecurityJWT.service;
 
 import com.twd.SpringSecurityJWT.entity.Feedback;
+import com.twd.SpringSecurityJWT.entity.FeedbackSearchCriteria;
 import com.twd.SpringSecurityJWT.entity.Users;
 
 import java.util.Date;

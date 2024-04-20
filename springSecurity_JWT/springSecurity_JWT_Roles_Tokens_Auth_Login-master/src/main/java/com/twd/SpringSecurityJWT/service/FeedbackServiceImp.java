@@ -1,6 +1,7 @@
 package com.twd.SpringSecurityJWT.service;
 
 import com.twd.SpringSecurityJWT.entity.Feedback;
+import com.twd.SpringSecurityJWT.entity.FeedbackSearchCriteria;
 import com.twd.SpringSecurityJWT.entity.Users;
 import com.twd.SpringSecurityJWT.repository.FeedbackRepo;
 import jakarta.persistence.EntityManager;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -78,29 +80,31 @@ public class FeedbackServiceImp implements IFeedBackService {
     }
 
     @Override
-    public List<Feedback> searchFeedbacks(Users createdByUser, String contenu, Date submissionDate) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Feedback> query = cb.createQuery(Feedback.class);
-        Root<Feedback> root = query.from(Feedback.class);
+    public List<Feedback> searchFeedbacks(Users createdBy, String contenu, Date submissionDate) {
+        List<Feedback> allFeedbacks = feedbackRepo.findAll();
 
-        // Create predicates based on the provided criteria
-        List<Predicate> predicates = new ArrayList<>();
-        if (createdByUser != null) {
-            predicates.add(cb.equal(root.get("createdBy"), createdByUser));
-        }
-        if (contenu != null && !contenu.isEmpty()) {
-            predicates.add(cb.like(cb.lower(root.get("contenu")), "%" + contenu.toLowerCase() + "%"));
-        }
-        if (submissionDate != null) {
-            predicates.add(cb.equal(root.get("submissionDate"), submissionDate));
-        }
+        System.out.println("Received Criteria - createdBy: " + createdBy + ", contenu: " + contenu + ", submissionDate: " + submissionDate);
+        System.out.println("Total Feedbacks: " + allFeedbacks.size());
 
-        // Build the WHERE clause using the predicates
-        query.where(predicates.toArray(new Predicate[0]));
+        List<Feedback> filteredFeedbacks = allFeedbacks.stream()
+                .filter(feedback ->
+                        (createdBy == null || createdBy.getId() == feedback.getCreatedByFb().getId()) &&
+                                (contenu == null || feedback.getContenu().contains(contenu)) &&
+                                (submissionDate == null || feedback.getSubmissionDate().equals(submissionDate)))
+                .collect(Collectors.toList());
 
-        // Execute the query and return the results
-        TypedQuery<Feedback> typedQuery = entityManager.createQuery(query);
-        return typedQuery.getResultList();
+        System.out.println("Filtered Feedbacks: " + filteredFeedbacks.size());
+
+        // Log attributes of each filtered feedback
+        filteredFeedbacks.forEach(feedback -> {
+            System.out.println("Feedback ID: " + feedback.getIdFeedback());
+
+        });
+
+        return filteredFeedbacks;
     }
+
+
+
 
 }
