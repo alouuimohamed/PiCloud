@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Sondage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idSondage;
