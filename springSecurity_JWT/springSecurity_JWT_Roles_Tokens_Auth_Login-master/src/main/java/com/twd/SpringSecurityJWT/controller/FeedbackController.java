@@ -54,6 +54,9 @@ public class FeedbackController {
             Users user = userOptional.get();
             feedback.setCreatedByFb(user);
 
+            // Set the submission date to the current time
+            feedback.setSubmissionDate(new Date());
+
             Feedback createdFeedback = feedBackService.addFeedback(feedback);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdFeedback);
         } catch (MalformedJwtException | IllegalArgumentException e) {

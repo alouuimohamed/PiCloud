@@ -16,4 +16,7 @@ public interface QuestionService {
 
     List<Question> retrieveAllQuestion();
     List<Question> addListQuestion(List<Question> questions);
+    public List<Question> findQuestionBySondage(Sondage sondage);
+
+
 }

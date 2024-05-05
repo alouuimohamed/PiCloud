@@ -1,14 +1,14 @@
 package com.twd.SpringSecurityJWT.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Data
 @Entity
@@ -28,6 +28,18 @@ public class Users implements UserDetails {
     private boolean banned;
     private boolean isOnline;
     private String token;
+    //relation sondage-user
+    @JsonIgnore
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Sondage> createdSondages = new HashSet<>();
+    @JsonIgnore
+    @ManyToMany(mappedBy = "participants", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Sondage> participatedSondages = new HashSet<>();
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private Set<ReponseSondage> createdReponsesSondage = new HashSet<>();
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

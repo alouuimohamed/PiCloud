@@ -1,11 +1,13 @@
 package com.twd.SpringSecurityJWT.controller;
 
 import com.twd.SpringSecurityJWT.dto.ReqRes;
+import com.twd.SpringSecurityJWT.entity.Users;
 import com.twd.SpringSecurityJWT.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,6 +29,13 @@ public class AuthController {
     public ResponseEntity<ReqRes> refreshToken(@RequestBody ReqRes refreshTokenRequest){
         return ResponseEntity.ok(authService.refreshToken(refreshTokenRequest));
     }
+    @GetMapping("/get-current-user")
+    public Users getCurrentUser(Authentication authentication){
+        Users currentUser = (Users) authentication.getPrincipal();
+        return currentUser;
+
+    }
+
 
     }
 

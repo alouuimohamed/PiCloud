@@ -1,6 +1,7 @@
 package com.twd.SpringSecurityJWT.service;
 
 import com.twd.SpringSecurityJWT.entity.Question;
+import com.twd.SpringSecurityJWT.entity.Sondage;
 import com.twd.SpringSecurityJWT.repository.QuestionRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,10 @@ public class QuestionServiceImp implements QuestionService {
     @Override
     public List<Question> addListQuestion(List<Question> questions) {
         return qr.saveAll(questions);
+    }
+
+    @Override
+    public List<Question> findQuestionBySondage(Sondage sondage) {
+        return qr.findQuestionBySondage(sondage);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -90,6 +91,7 @@ public class AuthService {
             response.setToken(jwt);
             response.setRefreshToken(refreshToken);
             response.setExpirationTime("24Hr");
+            response.setRole(user.getRole());
             response.setMessage("Successfully Signed In");
             user.setOnline(true);
             ourUserRepo.save(user);
@@ -130,6 +132,7 @@ public class AuthService {
             return ResponseEntity.notFound().build();
         }
     }
+
 
 
     }
