@@ -4,6 +4,7 @@ import com.twd.SpringSecurityJWT.dto.SondageQuestionDTO;
 import com.twd.SpringSecurityJWT.entity.Question;
 import com.twd.SpringSecurityJWT.entity.Sondage;
 import com.twd.SpringSecurityJWT.entity.Users;
+import com.twd.SpringSecurityJWT.repository.OurUserRepo;
 import com.twd.SpringSecurityJWT.repository.QuestionRepo;
 import com.twd.SpringSecurityJWT.repository.SondageRepo;
 import jakarta.servlet.ServletOutputStream;
@@ -26,6 +27,7 @@ import java.util.*;
 public class SondageServiceImp implements ISondageService{
 SondageRepo sondageRepo;
      QuestionRepo questionRepository;
+     OurUserRepo userRepo;
 
     @Override
     public Sondage addSondage(Sondage sondage) {
@@ -88,10 +90,11 @@ SondageRepo sondageRepo;
     public List<Sondage> getSondagesEndingWithinNextWeek() {
         LocalDate now = LocalDate.now();
         LocalDate oneWeekLater = now.plusDays(7);
-        return sondageRepo.findByEndDateBetween(now, oneWeekLater);
+        List<Sondage> s = sondageRepo.findByEndDateBetween(now, oneWeekLater);
+        return s;
     }
     @Override
-    @Scheduled(cron = "*/10 * * * * *")
+    @Transactional
     public void showSondagesEndingWithinNextWeek() {
         List<Sondage> sondages = getSondagesEndingWithinNextWeek();
         for (Sondage sondage : sondages) {
@@ -225,6 +228,88 @@ SondageRepo sondageRepo;
         }
         return false;
     }
+    @Override
+    public List<Users> getParticipantsBySondageId(Integer sondageId) {
+        return sondageRepo.findParticipantsBySondageId(sondageId);
+    }
+    @Override
+    public void exportToExcelSingleSondage(Sondage sondage, HttpServletResponse response) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Sondage");
+
+        // Create header row
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Title");
+        headerRow.createCell(1).setCellValue("Description");
+        headerRow.createCell(2).setCellValue("Start Date");
+        headerRow.createCell(3).setCellValue("End Date");
+        headerRow.createCell(4).setCellValue("Number of Questions");
+        headerRow.createCell(5).setCellValue("Number of Answers");
+        headerRow.createCell(6).setCellValue("Participation Rate");
+
+
+
+        // Populate data row
+        Row row = sheet.createRow(1);
+        row.createCell(0).setCellValue(sondage.getTitle());
+        row.createCell(1).setCellValue(sondage.getDescription());
+        row.createCell(2).setCellValue(sondage.getStartDate().toString());
+        row.createCell(3).setCellValue(sondage.getEndDate().toString());
+        row.createCell(4).setCellValue(sondage.getQuestions().size()); // Number of questions
+
+
+
+        // Calculate total number of answers (responses) for this sondage
+        int totalAnswers = 0;
+        for (Question question : sondage.getQuestions()) {
+            totalAnswers += question.getRepons().size();
+        }
+        row.createCell(5).setCellValue(totalAnswers); // Number of answers
+        row.createCell(6).setCellValue(this.calculateParticipationRateUsers(sondage)); // Number of answers
+
+
+        // Set content type and headers for Excel file download
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=sondage.xlsx");
+
+        // Write workbook data to response output stream
+        ServletOutputStream outputStream = response.getOutputStream();
+        workbook.write(outputStream);
+
+        // Close workbook and output stream
+        workbook.close();
+        outputStream.close();
+    }
+    private double calculateParticipationRateUsers(Sondage sondage) {
+        int totalUsers= userRepo.findAll().size();
+
+        if (sondage == null || sondage.getQuestions() == null || sondage.getQuestions().isEmpty()) {
+            return 0.0;
+        }
+
+        int totalQuestions = sondage.getQuestions().size();
+        int totalAnsweredQuestions = 0;
+
+        // Count the total number of answered questions
+        for (Question question : sondage.getQuestions()) {
+            if (!question.getRepons().isEmpty()) {
+                totalAnsweredQuestions++;
+            }
+        }
+
+        // Calculate participation rate
+        if (totalQuestions == 0) {
+            return 0.0;
+        }
+
+        // Calculate the participation rate based on the number of answered questions and total users
+        double participationRate = ((double) totalAnsweredQuestions / totalQuestions) * 100;
+
+        // Adjust the participation rate by considering total users
+        return (double) totalAnsweredQuestions / totalUsers * 100;
+    }
+
+
 
 
 

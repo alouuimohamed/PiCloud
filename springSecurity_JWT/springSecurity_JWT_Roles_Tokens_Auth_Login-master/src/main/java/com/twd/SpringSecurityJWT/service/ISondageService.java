@@ -29,6 +29,8 @@ public interface ISondageService {
     public Sondage addSondageAndQuestions(SondageQuestionDTO sondageRequest);
     public void addUserToSondage(Users user, Sondage sondage);
     public boolean updateSondageStatus(Integer sondageId, boolean isActive);
+    public List<Users> getParticipantsBySondageId(Integer sondageId);
+    public void exportToExcelSingleSondage(Sondage sondage, HttpServletResponse response) throws IOException;
 
 
     }

@@ -14,6 +14,8 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "Sondage")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Sondage {
@@ -38,6 +40,7 @@ public class Sondage {
     private Users createdBy;
 
     // Establishing many-to-many relationship with participants (users participating in the survey)
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "sondage_participants",
@@ -73,6 +76,7 @@ public class Sondage {
 
 
     // Custom method to count the number of questions associated with this sondage
+    @JsonIgnore
     public int getNumberOfQuestions() {
         return questions.size();
     }

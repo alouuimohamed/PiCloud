@@ -16,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -213,6 +215,8 @@ SondageRepo sondageRepo;
             Users user = userOptional.get();
             sondageRequest.getSondage().setCreatedBy(user);
             sondageRequest.getSondage().setActive(true);
+            sondageRequest.getSondage().setStartDate(new Date());
+
             if (sondageRequest.getSondage().getEndDate().before(new Date())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The deadline has already passed");
             }
@@ -290,6 +294,30 @@ SondageRepo sondageRepo;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    @GetMapping("/get-participants-byIdSondage/{sondageId}")
+    public ResponseEntity<List<Users>> getParticipantsBySondageId(@PathVariable Integer sondageId) {
+        List<Users> participants = sondageService.getParticipantsBySondageId(sondageId);
+        System.out.println(participants);
+        return ResponseEntity.ok(participants);
+    }
+    @GetMapping("/export-single-sondage/{idSondage}")
+    public ResponseEntity<String> exportSingleSondageToExcel(@PathVariable Integer idSondage, HttpServletResponse response) {
+        try {
+            Optional<Sondage> optionalSondage = sondageRepo.findByIdWithQuestionsAndReponses(idSondage);
+            if (!optionalSondage.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+            sondageService.exportToExcelSingleSondage(optionalSondage.get(), response);
+            return ResponseEntity.ok().body("Sondage exported successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Failed to export sondage: " + e.getMessage());
+        }
+    }
+    @Scheduled(cron = "*/10 * * * * *")
+    @GetMapping("/endingWithinNextWeek")
+    public List<Sondage> getSondagesEndingWithinNextWeek() {
+        return sondageService.getSondagesEndingWithinNextWeek();
     }
 
 
